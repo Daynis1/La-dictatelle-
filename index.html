@@ -1,219 +1,181 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html><html lang="fr">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>La Dictatelle</title>
   <style>
-    body, html {
+    html, body {
       margin: 0;
       padding: 0;
       background: black;
       overflow: hidden;
-      font-family: monospace;
+      font-family: 'Courier New', Courier, monospace;
       color: white;
-    }
+    }canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
 
-    #matrixCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 0;
-    }
+#overlayContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding-top: 50px;
+}
 
-    h1 {
-      text-align: center;
-      font-size: 48px;
-      color: darkred;
-      margin-top: 20px;
-      text-shadow: 0 0 10px red;
-      z-index: 2;
-      position: relative;
-    }
+h1 {
+  font-size: 48px;
+  color: darkred;
+  text-shadow: 0 0 15px red;
+  margin-bottom: 20px;
+}
 
-    #codeEntry {
-      text-align: center;
-      margin-top: 100px;
-      z-index: 2;
-      position: relative;
-    }
+input, button {
+  background: black;
+  color: white;
+  border: 2px solid darkred;
+  padding: 10px;
+  font-size: 18px;
+  margin: 10px;
+}
 
-    input[type="text"] {
-      padding: 10px;
-      font-size: 20px;
-      background: black;
-      color: white;
-      border: 2px solid darkred;
-    }
+#bottomMessage {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  color: red;
+  font-size: 20px;
+  z-index: 2;
+}
 
-    #site-content {
-      display: none;
-      text-align: center;
-      padding-top: 100px;
-    }
+#loadingScreen, #skullScreen, #questionScreen, #finalScreen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  color: red;
+  z-index: 10;
+  text-align: center;
+  padding-top: 100px;
+}
 
-    #bottomMessage {
-      position: fixed;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-      font-size: 20px;
-      color: red;
-      z-index: 2;
-    }
+.skull {
+  width: 200px;
+  animation: glitch 0.3s infinite;
+  margin-top: 20px;
+}
 
-    #loadingScreen {
-      display: none;
-      position: fixed;
-      background: linear-gradient(to bottom, #000, #330000);
-      width: 100%;
-      height: 100%;
-      z-index: 10;
-      text-align: center;
-      color: white;
-      padding-top: 100px;
-    }
+@keyframes glitch {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(2px, -2px); }
+  60% { transform: translate(-1px, 1px); }
+  80% { transform: translate(1px, -1px); }
+  100% { transform: translate(0, 0); }
+}
 
-    .dot {
-      display: inline-block;
-      margin: 0 5px;
-      width: 10px;
-      height: 10px;
-      background: white;
-      border-radius: 50%;
-      animation: blink 1s infinite;
-    }
+#matrixCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
 
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes blink {
-      0%, 100% { opacity: 0; }
-      50% { opacity: 1; }
-    }
-
-    #skull {
-      margin-top: 50px;
-      width: 200px;
-      animation: glitch 0.3s infinite;
-    }
-
-    @keyframes glitch {
-      0% { transform: translate(0px, 0px); }
-      25% { transform: translate(2px, -2px); }
-      50% { transform: translate(-2px, 2px); }
-      75% { transform: translate(2px, 2px); }
-      100% { transform: translate(0px, 0px); }
-    }
-
-    #testPrompt {
-      margin-top: 30px;
-    }
   </style>
 </head>
 <body>
-  <canvas id="matrixCanvas"></canvas>
+<canvas id="matrixCanvas"></canvas>
+<div id="overlayContent">
   <h1>La Dictatelle</h1>
-
-  <div id="codeEntry">
-    <input type="text" id="codeInput" placeholder="Code à 4 chiffres">
-    <button onclick="checkCode()">Entrer</button>
-  </div>
-
-  <div id="site-content">
-    <!-- Menu après le test -->
-    <h2>Dictatelle</h2>
-  </div>
-
-  <div id="bottomMessage">être observateur et patient</div>
-
-  <div id="loadingScreen">
-    <h2>Chargement <span class="dot"></span><span class="dot"></span><span class="dot"></span></h2>
-    <img id="skull" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Skull_icon.svg/1024px-Skull_icon.svg.png" alt="skull">
-    <div id="skullMessage">Bienvenue, nouveau participant</div>
-    <div id="testPrompt">
-      <p>Voici un test pour vous.</p>
-      <button onclick="showMain()">Faire le test</button>
-      <button onclick="window.close()">Quitter</button>
-    </div>
-  </div>
-
-  <script>
-    const canvas = document.getElementById("matrixCanvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-
-    const letters = "0123456789";
-    const fontSize = 24;
-    const columns = canvas.width / fontSize;
-    const drops = [];
-
-    for (let i = 0; i < columns; i++) {
-      drops[i] = 1;
-    }
-
-    let code = "5124";
-    let codeColumn = Math.floor(Math.random() * columns);
-
-    function drawMatrix() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  <input type="text" id="codeInput" placeholder="Code secret">
+  <button onclick="checkCode()">Entrer</button>
+</div>
+<div id="bottomMessage">être observateur et patient</div>
+<div id="loadingScreen">
+  <h2>Chargement...</h2>
+</div>
+<div id="skullScreen">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Skull_icon.svg/1024px-Skull_icon.svg.png" class="skull">
+  <h2>Bienvenue nouveau participant</h2>
+</div>
+<div id="questionScreen">
+  <p>Voulez-vous effectuer le test ?</p>
+  <button onclick="showNamePrompt()">Oui</button>
+  <button onclick="window.close()">Non</button>
+</div>
+<div id="finalScreen">
+  <p>Nom et prénom :</p>
+  <input type="text" id="nameInput" placeholder="Entrez votre nom...">
+  <button onclick="revealTruth()">Valider</button>
+  <p id="truthMessage"></p>
+</div>
+<script>
+const canvas = document.getElementById("matrixCanvas");
+const ctx = canvas.getContext("2d");
+canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+const fontSize = 24;
+const columns = Math.floor(canvas.width / fontSize);
+const drops = Array(columns).fill(1);
+const letters = "0123456789";
+let code = "5124";
+let lastCodeDropTime = Date.now();
+let codeColumn = Math.floor(Math.random() * columns);
+function drawMatrix() {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = fontSize + "px monospace";
+  for (let i = 0; i < drops.length; i++) {
+    const text = letters[Math.floor(Math.random() * letters.length)];
+    const x = i * fontSize;
+    const y = drops[i] * fontSize;
+    if (i === codeColumn && Date.now() - lastCodeDropTime < 800) {
+      ctx.fillStyle = "red";
+      ctx.fillText(code, x, y);
+    } else {
       ctx.fillStyle = "#0F0";
-      ctx.font = fontSize + "px monospace";
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = letters.charAt(Math.floor(Math.random() * letters.length));
-        ctx.fillStyle = (i === codeColumn && codeActive) ? "#FF3030" : "#0F0";
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-
-      // Affiche le code en rouge flashy dans une colonne
-      if (codeActive) {
-        for (let j = 0; j < code.length; j++) {
-          ctx.fillStyle = "#FF3030";
-          ctx.fillText(code[j], codeColumn * fontSize, (drops[codeColumn] - j) * fontSize);
-        }
-      }
+      ctx.fillText(text, x, y);
     }
-
-    let codeActive = false;
-    setInterval(drawMatrix, 70);
-
-    setInterval(() => {
-      codeActive = true;
-      codeColumn = Math.floor(Math.random() * columns);
-      setTimeout(() => { codeActive = false; }, 3000);
-    }, 20000);
-
-    function checkCode() {
-      const input = document.getElementById("codeInput").value;
-      if (input === code) {
-        if (confirm("Êtes-vous sûr de vouloir entrer dans la Dictatelle ?")) {
-          document.getElementById("codeEntry").style.display = "none";
-          document.getElementById("loadingScreen").style.display = "block";
-        } else {
-          window.close();
-        }
-      } else {
-        alert("N'essayez pas de vous introduire sans permission");
-      }
+    if (y > canvas.height && Math.random() > 0.975) {
+      drops[i] = 0;
     }
-
-    function showMain() {
+    drops[i]++;
+  }
+  if (Date.now() - lastCodeDropTime > 20000) {
+    codeColumn = Math.floor(Math.random() * columns);
+    lastCodeDropTime = Date.now();
+  }
+}
+setInterval(drawMatrix, 50);
+function checkCode() {
+  const input = document.getElementById("codeInput").value;
+  if (input === code) {
+    document.getElementById("overlayContent").style.display = "none";
+    document.getElementById("loadingScreen").style.display = "block";
+    setTimeout(() => {
       document.getElementById("loadingScreen").style.display = "none";
-      document.getElementById("site-content").style.display = "block";
-    }
-
-    window.addEventListener("resize", () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-  </script>
+      document.getElementById("skullScreen").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("skullScreen").style.display = "none";
+        document.getElementById("questionScreen").style.display = "block";
+      }, 5000);
+    }, 5000);
+  } else {
+    alert("n'essayez pas de vous introduire sans permission");
+  }
+}
+function showNamePrompt() {
+  document.getElementById("questionScreen").style.display = "none";
+  document.getElementById("finalScreen").style.display = "block";
+}
+function revealTruth() {
+  const name = document.getElementById("nameInput").value;
+  document.getElementById("truthMessage").innerText = `Pourquoi mentir Raphaël... nous sommes déjà au courant.`;
+}
+</script>
 </body>
 </html>
