@@ -6,119 +6,124 @@
   <style>
     body {
       margin: 0;
-      background-color: black;
-      color: lime;
-      font-family: monospace;
+      background: black;
+      color: white;
+      font-family: 'Courier New', Courier, monospace;
       overflow: hidden;
-    }#matrix {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-canvas {
-  display: block;
-}
-
-.centered {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  z-index: 2;
-}
-
-.hidden {
-  display: none;
-}
-
-.red {
-  color: red;
-  font-weight: bold;
-  animation: flash 1s infinite;
-}
-
-@keyframes flash {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
-}
-
-.skull {
-  width: 100px;
-  height: auto;
-  animation: glitch 1s infinite;
-  filter: brightness(150%) saturate(150%) contrast(200%);
-}
-
-@keyframes glitch {
-  0% { transform: scale(1) rotate(0); }
-  20% { transform: scale(1.1) rotate(2deg); }
-  40% { transform: scale(0.9) rotate(-2deg); }
-  60% { transform: scale(1.1) rotate(1deg); }
-  80% { transform: scale(0.95) rotate(-1deg); }
-  100% { transform: scale(1) rotate(0); }
-}
-
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+    .centered {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    #codeInput, #validateCodeBtn, #nameInput, #startTestBtn, #stopBtn, #yesBtn, #noBtn {
+      margin-top: 10px;
+      background: black;
+      border: 1px solid red;
+      color: white;
+      padding: 5px;
+    }
+    #footerMessage {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      color: red;
+      font-style: italic;
+    }
+    .skull {
+      width: 150px;
+      filter: brightness(50%) contrast(200%) grayscale(100%) hue-rotate(0deg);
+      animation: glitch 0.5s infinite;
+    }
+    @keyframes glitch {
+      0% { transform: translate(1px, 1px); }
+      20% { transform: translate(-1px, -2px); }
+      40% { transform: translate(-1px, 1px); }
+      60% { transform: translate(1px, 2px); }
+      80% { transform: translate(1px, -1px); }
+      100% { transform: translate(0, 0); }
+    }
+    .menu {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 30px;
+      font-size: 1.2em;
+    }
   </style>
 </head>
 <body>
 <canvas id="matrix"></canvas>
-<div class="centered" id="entry">
-  <h1 class="red">Ils nous observent</h1>
-  <p style="color:white">Entrez le code pour continuer</p>
-  <input type="text" id="code" maxlength="4">
-  <button onclick="checkCode()">Valider</button>
-  <p id="error" style="color:red;"></p>
-  <p class="red" style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%);">être observateur et patient</p>
-</div>
-<div class="centered hidden" id="confirmation">
-  <p style="color:white">Êtes-vous sûr de vouloir entrer dans La Dictatelle ?</p>
-  <button onclick="enterSite()">Oui</button>
-  <button onclick="location.reload()">Non</button>
-</div>
-<div class="centered hidden" id="loading">
-  <p style="color:red">Chargement</p>
-  <p style="font-size: 24px;">● ● ●</p>
-</div>
-<div class="centered hidden" id="welcome">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Skull_icon.svg/1024px-Skull_icon.svg.png" class="skull">
-  <p class="red">Bienvenue, nouveau participant...</p>
-</div>
-<div class="centered hidden" id="question">
-  <p style="color:white">Voulez-vous effectuer le test ?</p>
-  <button onclick="askName()">Oui</button>
-  <button onclick="location.reload()">Non</button>
-</div>
-<div class="centered hidden" id="askname">
-  <p style="color:white">Nom et Prénom :</p>
-  <input type="text" id="username">
-  <button onclick="revealMessage()">Valider</button>
-</div>
-<div class="centered hidden" id="final">
-  <p style="color:red">Élément enregistré... Salut <span id="user"></span></p>
-  <p class="red">Êtes-vous seul en ce moment ?</p>
-  <button onclick="alert('Vous ne devriez pas mentir...')">Oui</button>
-  <button onclick="alert('On le saura...')">Non</button>
-</div>
+<div id="app" class="centered"></div>
+<div id="footerMessage">Être observateur et patient</div>
 <script>
-  const canvas = document.getElementById('matrix');
-  const ctx = canvas.getContext('2d');canvas.height = window.innerHeight; canvas.width = window.innerWidth;
+  const app = document.getElementById("app");const questions = [ { text: "Êtes-vous seul en ce moment ?", onAnswer: () => showContinueOrStop(() => showQuestion2()) }, { text: "Êtes-vous un criminel ?", onAnswer: (answer) => { if(answer === 'non') { showMessage("Vous le deviendrez bientôt si vous êtes découvert ici.", () => showContinueOrStop(() => showQuestion3())); } else { showMessage("Élément enregistré.", () => showContinueOrStop(() => showQuestion3())); } } }, { text: "Êtes-vous prêt à entrer dans la Dictatelle ?", onAnswer: (answer) => { if(answer === 'oui') showFinal(); } } ];
 
-const letters = "0123456789"; const fontSize = 14; const columns = canvas.width / fontSize; const drops = Array(Math.floor(columns)).fill(1);
+let userName = ""; let code = "5124"; let currentQuestion = 0;
 
-let showCode = false; setInterval(() => showCode = true, 20000);
+function showCodeInput() { app.innerHTML = <h1 style="color: darkred">La Dictatelle</h1> <p>Ils nous observent...</p> <input type="text" id="codeInput" placeholder="Code"> <button id="validateCodeBtn">Entrer</button> <p id="errorMessage" style="color:red"></p>; document.getElementById("validateCodeBtn").onclick = () => { const input = document.getElementById("codeInput").value; if (input === code) { showLoading(); } else { document.getElementById("errorMessage").innerText = "N'essayez pas de vous introduire sans permission"; } }; }
 
-function drawMatrix() { ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace'; for(let i = 0; i < drops.length; i++) { let text = Math.random() > 0.95 && showCode ? '5124' : letters[Math.floor(Math.random() * letters.length)]; if(text === '5124') { ctx.fillStyle = 'red'; ctx.fillText(text, i * fontSize, drops[i] * fontSize); ctx.fillStyle = '#0F0'; showCode = false; } else { ctx.fillText(text, i * fontSize, drops[i] * fontSize); } drops[i] = (drops[i] * fontSize > canvas.height || Math.random() > 0.95) ? 0 : drops[i] + 1; } } setInterval(drawMatrix, 50);
+function showLoading() { app.innerHTML = "<p>Chargement...</p>"; setTimeout(() => showSkull(), 5000); }
 
-function checkCode() { const code = document.getElementById('code').value; if(code === '5124') { document.getElementById('entry').classList.add('hidden'); document.getElementById('confirmation').classList.remove('hidden'); } else { document.getElementById('error').innerText = "N'essayez pas de vous introduire sans permission"; } }
+function showSkull() { app.innerHTML = <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Skull_icon.svg/1024px-Skull_icon.svg.png" class="skull"> <p>Bienvenue nouveau participant</p>; setTimeout(() => showMessage("Élément enregistré...", () => askName()), 3000); }
 
-function enterSite() { document.getElementById('confirmation').classList.add('hidden'); document.getElementById('loading').classList.remove('hidden'); setTimeout(() => { document.getElementById('loading').classList.add('hidden'); document.getElementById('welcome').classList.remove('hidden'); setTimeout(() => { document.getElementById('welcome').classList.add('hidden'); document.getElementById('question').classList.remove('hidden'); }, 3000); }, 5000); }
+function askName() { app.innerHTML = <p>Quel est votre nom et prénom ?</p> <input type="text" id="nameInput"> <button id="validateName">Valider</button>; document.getElementById("validateName").onclick = () => { userName = document.getElementById("nameInput").value; showMessage(Élément enregistré... Salut ${userName}, () => showQuestion()); }; }
 
-function askName() { document.getElementById('question').classList.add('hidden'); document.getElementById('askname').classList.remove('hidden'); }
+function showMessage(message, callback) { app.innerHTML = <p>${message}</p>; setTimeout(callback, 2000); }
 
-function revealMessage() { const username = document.getElementById('username').value; document.getElementById('askname').classList.add('hidden'); document.getElementById('final').classList.remove('hidden'); document.getElementById('user').innerText = username; } </script>
+function showQuestion() { app.innerHTML = <p>${questions[currentQuestion].text}</p> <button onclick="answer('oui')">Oui</button> <button onclick="answer('non')">Non</button>; }
+
+function answer(rep) { const q = questions[currentQuestion]; currentQuestion++; q.onAnswer(rep); }
+
+function showContinueOrStop(callback) { app.innerHTML = <p>Élément pris en compte.</p> <button id="startTestBtn">Continuer</button> <button id="stopBtn">S'arrêter ici</button>; document.getElementById("startTestBtn").onclick = callback; document.getElementById("stopBtn").onclick = () => window.close(); }
+
+function showQuestion2() { showQuestion(); }
+
+function showQuestion3() { showQuestion(); }
+
+function showFinal() { app.innerHTML = ""; setTimeout(() => { app.innerHTML = <p style='opacity:0; transition: opacity 5s;'>Ce site est un repère de toutes les pires choses de la planète.</p>; setTimeout(() => { app.innerHTML = <p>Mort. Violence. Secte. Criminel. Marché noir sont présents ici...</p>; setTimeout(() => { app.innerHTML = <h1>Bienvenue</h1> <h2>La Dictatelle</h2> <div class='menu'> <span>Salon textuel</span> <span>Contenus vidéo</span> <span>Engagement</span> <span>Vente</span> </div>; }, 5000); }, 6000); }, 3000); }
+
+function startMatrix() { const canvas = document.getElementById("matrix"); const ctx = canvas.getContext("2d"); canvas.height = window.innerHeight; canvas.width = window.innerWidth; const letters = "0123456789"; const fontSize = 14; const columns = canvas.width / fontSize; const drops = Array.from({ length: columns }).fill(1);
+
+function draw() {
+  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#0F0";
+  ctx.font = fontSize + "px monospace";
+
+  for (let i = 0; i < drops.length; i++) {
+    let text = letters[Math.floor(Math.random() * letters.length)];
+    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    drops[i]++;
+
+    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+  }
+}
+
+setInterval(draw, 33);
+
+setInterval(() => {
+  let i = Math.floor(Math.random() * drops.length);
+  let codeDigits = code.split("");
+  for (let j = 0; j < codeDigits.length; j++) {
+    setTimeout(() => {
+      ctx.fillStyle = "red";
+      ctx.fillText(codeDigits[j], i * fontSize, j * fontSize);
+    }, j * 100);
+  }
+}, 20000);
+
+}
+
+startMatrix(); showCodeInput(); </script>
 
 </body>
 </html>
