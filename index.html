@@ -4,47 +4,41 @@
   <meta charset="UTF-8" />
   <title>La Dictatelle</title>
   <style>
-    body {
+    html, body {
       margin: 0;
-      background: black;
-      color: #00ff99;
-      font-family: 'Courier New', monospace;
+      padding: 0;
       overflow: hidden;
+      background: black;
+      font-family: monospace;
+      color: #00ff99;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      margin-top: 12vh;
     }
 
     h1 {
       font-size: 4em;
-      text-align: center;
-      margin-top: 10vh;
       animation: glitch 1.5s infinite;
     }
 
-    .blood {
-      position: absolute;
-      width: 200px;
-      height: 300px;
-      background: radial-gradient(red, darkred, transparent);
-      border-radius: 50%;
-      top: 30%;
-      left: 50%;
-      transform: translate(-50%, -50%) rotate(20deg);
-      opacity: 0.3;
-      animation: drip 5s infinite;
-    }
-
     .msg {
-      position: absolute;
-      bottom: 20px;
-      width: 100%;
-      text-align: center;
       color: #ff0033;
-      font-size: 1.2em;
-      opacity: 0.7;
       font-style: italic;
+      margin-top: 10px;
     }
 
     .code-area {
-      text-align: center;
       margin-top: 30px;
     }
 
@@ -70,15 +64,13 @@
 
     #site-content {
       display: none;
-      text-align: center;
-      margin-top: 40px;
       color: #ff0033;
+      margin-top: 40px;
     }
 
-    /* ANIMATION glitch avec le code caché */
     @keyframes glitch {
       0% { text-shadow: 2px 0 red, -2px 0 blue; }
-      25% { text-shadow: -2px 0 red, 2px 0 blue, 5px 5px #5124; } /* CODE CACHÉ : 5124 */
+      25% { text-shadow: -2px 0 red, 2px 0 blue, 5px 5px #5124; }
       50% { text-shadow: 1px 1px red, -1px -1px blue; }
       75% { text-shadow: 2px 2px red, -2px -2px blue, 0 0 5px #5124; }
       100% { text-shadow: 0 0 red, 0 0 blue; }
@@ -86,19 +78,21 @@
   </style>
 </head>
 <body>
-  <h1>La Dictatelle</h1>
-  <div class="blood"></div>
-  <div class="msg">Ils nous observent.</div>
+  <canvas id="matrixCanvas"></canvas>
 
-  <div class="code-area">
-    <input type="password" id="codeInput" maxlength="4" placeholder="****" />
-    <button onclick="checkCode()">Entrer</button>
-  </div>
+  <div class="content">
+    <h1>La Dictatelle</h1>
+    <div class="msg">Ils nous observent.</div>
 
-  <div id="site-content">
-    <p>Bienvenue dans La Dictatelle...</p>
-    <p>Les fichiers sont ouverts.</p>
-    <!-- Tu pourras ajouter ici tes secrets -->
+    <div class="code-area">
+      <input type="password" id="codeInput" maxlength="4" placeholder="****" />
+      <button onclick="checkCode()">Entrer</button>
+    </div>
+
+    <div id="site-content">
+      <p>Bienvenue dans La Dictatelle...</p>
+      <p>Les fichiers sont ouverts. D’autres portes vous attendent.</p>
+    </div>
   </div>
 
   <script>
@@ -107,9 +101,50 @@
       if (code === "5124") {
         document.getElementById("site-content").style.display = "block";
       } else {
-        alert("Code incorrect. Essaie encore...");
+        alert("Code incorrect. Regarde autour de toi...");
       }
     }
+
+    // EFFET MATRIX + CODE CACHÉ
+    const canvas = document.getElementById("matrixCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+
+    const chars = "01";
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#0F0"; // caractères verts
+      ctx.font = fontSize + "px monospace";
+
+      for (let i = 0; i < drops.length; i++) {
+        let text = chars.charAt(Math.floor(Math.random() * chars.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 35);
+
+    // 🔐 Injecter le code 5124 toutes les 30 secondes
+    setInterval(() => {
+      const positions = [5, 1, 2, 4];
+      for (let i = 0; i < positions.length; i++) {
+        const x = Math.floor(Math.random() * columns);
+        const y = Math.floor(Math.random() * canvas.height / fontSize);
+        ctx.fillStyle = "#a00"; // couleur rouge sombre pour le code
+        ctx.fillText(positions[i], x * fontSize, y * fontSize);
+      }
+    }, 30000);
   </script>
 </body>
 </html>
