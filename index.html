@@ -112,9 +112,9 @@
     canvas.width = window.innerWidth;
 
     const chars = "01";
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
+    const fontSize = 28;  // <-- taille augmentée
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = Array(columns).fill(1);
 
     function drawMatrix() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
@@ -133,18 +133,25 @@
       }
     }
 
-    setInterval(drawMatrix, 35);
+    setInterval(drawMatrix, 70); // <-- vitesse ralentie
 
     // 🔐 Injecter le code 5124 toutes les 30 secondes
     setInterval(() => {
-      const positions = [5, 1, 2, 4];
-      for (let i = 0; i < positions.length; i++) {
+      const codeDigits = ['5', '1', '2', '4'];
+      for (let i = 0; i < codeDigits.length; i++) {
         const x = Math.floor(Math.random() * columns);
-        const y = Math.floor(Math.random() * canvas.height / fontSize);
-        ctx.fillStyle = "#a00"; // couleur rouge sombre pour le code
-        ctx.fillText(positions[i], x * fontSize, y * fontSize);
+        const y = Math.floor(Math.random() * (canvas.height / fontSize));
+        ctx.fillStyle = "#ff5555"; // rouge clair et visible
+        ctx.font = fontSize + "px monospace";
+        ctx.fillText(codeDigits[i], x * fontSize, y * fontSize);
       }
     }, 30000);
+
+    // Ajuste la taille du canvas si la fenêtre change
+    window.addEventListener('resize', () => {
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+    });
   </script>
 </body>
 </html>
