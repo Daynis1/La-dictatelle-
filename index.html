@@ -2,51 +2,72 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>La Dictatelle</title>
   <style>
-    body { background-color: #0d0d0d; color: #00ff88; font-family: 'Courier New', monospace; margin: 0; padding: 0; }
-    header { text-align: center; padding: 3rem 1rem; border-bottom: 1px solid #222; }
-    h1 { font-size: 3rem; letter-spacing: 0.1em; animation: glitch 1s infinite; }
-    nav { display: flex; justify-content: center; gap: 2rem; padding: 1rem; background: #111; }
-    nav a { color: #00ff88; text-decoration: none; }
-    nav a:hover { color: #ff0055; }
-    section { padding: 3rem; max-width: 800px; margin: auto; }
-    footer { text-align: center; padding: 2rem; border-top: 1px solid #222; font-size: 0.8rem; color: #555; }
+    body {
+      margin: 0;
+      background: black;
+      color: #00ff99;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+      animation: flicker 2s infinite;
+    }
+
+    h1 {
+      font-size: 4em;
+      text-align: center;
+      margin-top: 20vh;
+      animation: glitch 1s infinite;
+    }
+
+    @keyframes flicker {
+      0%, 100% { background-color: #000; }
+      50% { background-color: #111; }
+    }
+
     @keyframes glitch {
-      0% { text-shadow: 1px 1px red; }
-      20% { text-shadow: -1px -1px lime; }
-      40% { text-shadow: 2px -1px blue; }
-      60% { text-shadow: -2px 1px purple; }
-      80% { text-shadow: 1px -1px red; }
-      100% { text-shadow: 0 0 #00ff88; }
+      0% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(0); }
+      20% { text-shadow: -2px 0 red, 2px 0 blue; transform: translate(-2px, 2px); }
+      40% { text-shadow: 2px 2px red, -2px -2px blue; transform: translate(2px, -2px); }
+      60% { text-shadow: -1px 1px red, 1px -1px blue; transform: translate(-1px, 1px); }
+      80% { text-shadow: 2px 0 red, -2px 0 blue; transform: translate(1px, -2px); }
+      100% { text-shadow: 0 0 red, 0 0 blue; transform: translate(0); }
+    }
+
+    .blood {
+      position: absolute;
+      width: 200px;
+      height: 300px;
+      background: radial-gradient(red, darkred, transparent);
+      border-radius: 50%;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(20deg);
+      opacity: 0.4;
+      animation: drip 5s infinite;
+    }
+
+    @keyframes drip {
+      0% { transform: translate(-50%, -50%) scale(1) rotate(20deg); }
+      50% { transform: translate(-50%, -48%) scale(1.05) rotate(25deg); }
+      100% { transform: translate(-50%, -50%) scale(1) rotate(20deg); }
+    }
+
+    .msg {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      color: #ff0033;
+      font-size: 1.2em;
+      opacity: 0.7;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>LA DICTATELLE</h1>
-    <p>"La vérité n'a pas besoin d'être comprise. Seulement suivie."</p>
-  </header>
-  <nav>
-    <a href="#mission">Mission</a>
-    <a href="#archives">Archives</a>
-    <a href="#acces">Accès</a>
-  </nav>
-  <section id="mission">
-    <h2>Notre Mission</h2>
-    <p>Nous veillons. Nous filtrons. Nous sélectionnons. Chaque donnée est un souffle. Chaque souffle est surveillé.</p>
-  </section>
-  <section id="archives">
-    <h2>Archives</h2>
-    <p>[memo_alpha_error404] — [Dossier_17_REDAC] — [Fichier_XZ_Confidentiel]</p>
-  </section>
-  <section id="acces">
-    <h2>Accès restreint</h2>
-    <code>> login:<br>> password:<br>> initiate_protocol 17</code>
-  </section>
-  <footer>
-    &copy; 2025 La Dictatelle — Tous droits inversés. L’observateur est observé.
-  </footer>
+  <h1>La Dictatelle</h1>
+  <div class="blood"></div>
+  <div class="msg">Ils nous observent.</div>
 </body>
 </html>
