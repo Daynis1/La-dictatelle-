@@ -4,94 +4,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Dictatelle</title>
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       background: black;
-      color: white;
-      font-family: 'Courier New', Courier, monospace;
+      color: #00ff00;
+      font-family: monospace;
       overflow: hidden;
-    }
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
-    .centered {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-    }
-    #codeInput, #validateCodeBtn, #nameInput, #startTestBtn, #stopBtn, #yesBtn, #noBtn {
-      margin-top: 10px;
-      background: black;
-      border: 1px solid red;
-      color: white;
-      padding: 5px;
-    }
-    #footerMessage {
-      position: fixed;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-      color: red;
-      font-style: italic;
-    }
-    .skull {
-      width: 150px;
-      filter: brightness(50%) contrast(200%) grayscale(100%) hue-rotate(0deg);
-      animation: glitch 0.5s infinite;
-    }
-    @keyframes glitch {
-      0% { transform: translate(1px, 1px); }
-      20% { transform: translate(-1px, -2px); }
-      40% { transform: translate(-1px, 1px); }
-      60% { transform: translate(1px, 2px); }
-      80% { transform: translate(1px, -1px); }
-      100% { transform: translate(0, 0); }
-    }
-    .menu {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 30px;
-      font-size: 1.2em;
-    }
+    }canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+.overlay, .centered, .question-box, .menu-final {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: red;
+  z-index: 2;
+}
+
+.skull {
+  width: 150px;
+  animation: glitch 1s infinite;
+  filter: hue-rotate(180deg) brightness(1.5);
+}
+
+@keyframes glitch {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-48%, -52%) scale(1.05); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+.footer {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  color: red;
+  z-index: 3;
+  font-size: 18px;
+}
+
+button {
+  background: transparent;
+  border: 1px solid red;
+  color: red;
+  padding: 10px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+.menu-final div {
+  margin: 10px;
+  font-size: 20px;
+  color: #ff0000;
+}
+
   </style>
 </head>
 <body>
-<canvas id="matrix"></canvas>
-<div id="app" class="centered"></div>
-<div id="footerMessage">Être observateur et patient</div>
-<script>
-  const app = document.getElementById("app");const questions = [ { text: "Êtes-vous seul en ce moment ?", onAnswer: () => showContinueOrStop(() => showQuestion2()) }, { text: "Êtes-vous un criminel ?", onAnswer: (answer) => { if(answer === 'non') { showMessage("Vous le deviendrez bientôt si vous êtes découvert ici.", () => showContinueOrStop(() => showQuestion3())); } else { showMessage("Élément enregistré.", () => showContinueOrStop(() => showQuestion3())); } } }, { text: "Êtes-vous prêt à entrer dans la Dictatelle ?", onAnswer: (answer) => { if(answer === 'oui') showFinal(); } } ];
-
-let userName = ""; let code = "5124"; let currentQuestion = 0;
-
-function showCodeInput() { app.innerHTML = <h1 style="color: darkred">La Dictatelle</h1> <p>Ils nous observent...</p> <input type="text" id="codeInput" placeholder="Code"> <button id="validateCodeBtn">Entrer</button> <p id="errorMessage" style="color:red"></p>; document.getElementById("validateCodeBtn").onclick = () => { const input = document.getElementById("codeInput").value; if (input === code) { showLoading(); } else { document.getElementById("errorMessage").innerText = "N'essayez pas de vous introduire sans permission"; } }; }
-
-function showLoading() { app.innerHTML = "<p>Chargement...</p>"; setTimeout(() => showSkull(), 5000); }
-
-function showSkull() { app.innerHTML = <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Skull_icon.svg/1024px-Skull_icon.svg.png" class="skull"> <p>Bienvenue nouveau participant</p>; setTimeout(() => showMessage("Élément enregistré...", () => askName()), 3000); }
-
-function askName() { app.innerHTML = <p>Quel est votre nom et prénom ?</p> <input type="text" id="nameInput"> <button id="validateName">Valider</button>; document.getElementById("validateName").onclick = () => { userName = document.getElementById("nameInput").value; showMessage(Élément enregistré... Salut ${userName}, () => showQuestion()); }; }
-
-function showMessage(message, callback) { app.innerHTML = <p>${message}</p>; setTimeout(callback, 2000); }
-
-function showQuestion() { app.innerHTML = <p>${questions[currentQuestion].text}</p> <button onclick="answer('oui')">Oui</button> <button onclick="answer('non')">Non</button>; }
-
-function answer(rep) { const q = questions[currentQuestion]; currentQuestion++; q.onAnswer(rep); }
-
-function showContinueOrStop(callback) { app.innerHTML = <p>Élément pris en compte.</p> <button id="startTestBtn">Continuer</button> <button id="stopBtn">S'arrêter ici</button>; document.getElementById("startTestBtn").onclick = callback; document.getElementById("stopBtn").onclick = () => window.close(); }
-
-function showQuestion2() { showQuestion(); }
-
-function showQuestion3() { showQuestion(); }
-
-function showFinal() { app.innerHTML = ""; setTimeout(() => { app.innerHTML = <p style='opacity:0; transition: opacity 5s;'>Ce site est un repère de toutes les pires choses de la planète.</p>; setTimeout(() => { app.innerHTML = <p>Mort. Violence. Secte. Criminel. Marché noir sont présents ici...</p>; setTimeout(() => { app.innerHTML = <h1>Bienvenue</h1> <h2>La Dictatelle</h2> <div class='menu'> <span>Salon textuel</span> <span>Contenus vidéo</span> <span>Engagement</span> <span>Vente</span> </div>; }, 5000); }, 6000); }, 3000); }
-
-function startMatrix() { const canvas = document.getElementById("matrix"); const ctx = canvas.getContext("2d"); canvas.height = window.innerHeight; canvas.width = window.innerWidth; const letters = "0123456789"; const fontSize = 14; const columns = canvas.width / fontSize; const drops = Array.from({ length: columns }).fill(1);
+  <canvas id="matrix"></canvas>
+  <div class="overlay" id="intro">
+    <h1 style="color: darkred; font-size: 32px;">La Dictatelle</h1>
+    <p style="color: red">Il nous observe...</p>
+    <input type="password" id="codeInput" placeholder="Code">
+    <button onclick="checkCode()">Valider</button>
+    <p id="errorMessage"></p>
+  </div>
+  <div class="footer">Être observateur et patient</div>
+  <div class="overlay" id="loading" style="display:none; color: white;">
+    <p>Chargement</p>
+    <p>● ● ●</p>
+  </div>
+  <div class="overlay" id="skullScreen" style="display:none;">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Skull_icon.svg/1024px-Skull_icon.svg.png" class="skull">
+    <p style="color:red">Bienvenue nouveau participant...</p>
+  </div>
+  <div class="overlay" id="questionBox" style="display:none;"></div>
+  <div class="overlay" id="blackScreen" style="display:none; background:black; width:100%; height:100%;"></div>
+  <div class="overlay" id="finalScreen" style="display:none;">
+    <h1 style="color:red; font-size: 36px;">La Dictatelle</h1>
+    <div class="menu-final">
+      <div>Salon textuel</div>
+      <div>Contenus vidéo</div>
+      <div>Engagement</div>
+      <div>Vente</div>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById("matrix");
+    const ctx = canvas.getContext("2d");
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    const letters = "0123456789";
+    const fontSize = 16;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);let code = "5124";
+let tick = 0;
 
 function draw() {
   ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
@@ -100,30 +114,112 @@ function draw() {
   ctx.font = fontSize + "px monospace";
 
   for (let i = 0; i < drops.length; i++) {
-    let text = letters[Math.floor(Math.random() * letters.length)];
-    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    let text = letters.charAt(Math.floor(Math.random() * letters.length));
+
+    if (tick % 1200 === 0 && i === Math.floor(Math.random() * columns)) {
+      text = code;
+      ctx.fillStyle = "#ff0000";
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    } else {
+      ctx.fillStyle = "#0F0";
+      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    }
+
+    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+      drops[i] = 0;
+    }
     drops[i]++;
-
-    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
   }
+  tick++;
 }
+setInterval(draw, 50);
 
-setInterval(draw, 33);
-
-setInterval(() => {
-  let i = Math.floor(Math.random() * drops.length);
-  let codeDigits = code.split("");
-  for (let j = 0; j < codeDigits.length; j++) {
+function checkCode() {
+  const input = document.getElementById("codeInput").value;
+  if (input === code) {
+    document.getElementById("intro").style.display = "none";
+    document.getElementById("loading").style.display = "block";
     setTimeout(() => {
-      ctx.fillStyle = "red";
-      ctx.fillText(codeDigits[j], i * fontSize, j * fontSize);
-    }, j * 100);
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("skullScreen").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("skullScreen").style.display = "none";
+        showQuestion("Êtes-vous seul en ce moment ?", next1);
+      }, 4000);
+    }, 5000);
+  } else {
+    document.getElementById("errorMessage").textContent = "N'essayez pas de vous introduire sans permission";
   }
-}, 20000);
-
 }
 
-startMatrix(); showCodeInput(); </script>
+function showQuestion(question, callback) {
+  const box = document.getElementById("questionBox");
+  box.innerHTML = `<p>${question}</p><button onclick="(${callback.toString()})('oui')">Oui</button><button onclick="(${callback.toString()})('non')">Non</button>`;
+  box.style.display = "block";
+}
 
+function next1(rep) {
+  document.getElementById("questionBox").style.display = "none";
+  showMessage("Élément pris en compte...", () => {
+    showQuestion("Souhaitez-vous poursuivre ou vous arrêter ?", next2);
+  });
+}
+
+function next2(rep) {
+  if (rep === 'non') {
+    window.close();
+    return;
+  }
+  document.getElementById("questionBox").style.display = "none";
+  showQuestion("Êtes-vous un criminel ?", next3);
+}
+
+function next3(rep) {
+  document.getElementById("questionBox").style.display = "none";
+  if (rep === 'non') {
+    showMessage("Vous le deviendrez bientôt si vous êtes découvert ici...", () => showQuestion("Souhaitez-vous continuer ou vous arrêter ?", next4));
+  } else {
+    showMessage("Élément enregistré...", () => showQuestion("Souhaitez-vous continuer ou vous arrêter ?", next4));
+  }
+}
+
+function next4(rep) {
+  if (rep === 'non') {
+    window.close();
+    return;
+  }
+  document.getElementById("questionBox").style.display = "none";
+  showQuestion("Êtes-vous prêt à entrer dans la Dictatelle ?", finalEntry);
+}
+
+function finalEntry(rep) {
+  if (rep === 'oui') {
+    document.getElementById("questionBox").style.display = "none";
+    document.getElementById("blackScreen").style.display = "block";
+    setTimeout(() => {
+      document.getElementById("blackScreen").innerHTML = '<p style="color:red; font-size:24px;">Ce site est un repère de toutes les pires choses de la planète...</p>';
+      setTimeout(() => {
+        document.getElementById("blackScreen").innerHTML = '<p style="color:red; font-size:20px;">Mort. Violence. Secte. Criminel. Meurtrier. Marché noir... sont présents ici.</p>';
+        setTimeout(() => {
+          document.getElementById("blackScreen").style.display = "none";
+          document.getElementById("finalScreen").style.display = "block";
+        }, 5000);
+      }, 5000);
+    }, 3000);
+  } else {
+    window.close();
+  }
+}
+
+function showMessage(message, callback) {
+  const box = document.getElementById("questionBox");
+  box.innerHTML = `<p>${message}</p>`;
+  setTimeout(() => {
+    box.style.display = "none";
+    callback();
+  }, 3000);
+}
+
+  </script>
 </body>
 </html>
