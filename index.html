@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>La Dictatelle</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      background: black;
+      background-color: black;
+      color: white;
       font-family: monospace;
     }
 
-    canvas {
-      position: fixed;
+    #matrix {
+      position: absolute;
       top: 0;
       left: 0;
       z-index: 0;
@@ -21,26 +23,40 @@
     .content {
       position: relative;
       z-index: 1;
-      color: red;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
       text-align: center;
-      margin-top: 30vh;
+      padding: 20px;
+    }
+
+    h1.title {
+      color: #ff0000;
+      font-size: 3em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px red;
     }
 
     input[type="text"] {
       padding: 10px;
       font-size: 1.2em;
-      background: black;
-      border: 2px solid red;
-      color: red;
+      border: 2px solid #ff0000;
+      background-color: black;
+      color: white;
+      outline: none;
+      margin-top: 10px;
     }
 
     button {
       padding: 10px 20px;
-      font-size: 1.2em;
-      background: black;
-      color: red;
-      border: 2px solid red;
+      margin-top: 10px;
+      background-color: #111;
+      color: #ff0000;
+      border: 1px solid #ff0000;
       cursor: pointer;
+      font-size: 1em;
     }
 
     .footer-message {
@@ -50,7 +66,7 @@
       text-align: center;
       color: #ff5555;
       font-size: 1.1em;
-      z-index: 1;
+      z-index: 2;
     }
   </style>
 </head>
@@ -58,16 +74,15 @@
   <canvas id="matrix"></canvas>
 
   <div class="content">
-    <h1>Ils nous observent.</h1>
-    <h2>La Dictatelle</h2>
-    <input type="text" id="codeInput" placeholder="Code d'accès">
+    <h1 class="title">La Dictatelle</h1>
+    <p>Ils nous observent...</p>
+    <input type="text" id="codeInput" placeholder="Code à 4 chiffres">
     <button onclick="checkCode()">Entrer</button>
   </div>
 
   <div class="footer-message">être observateur et patient</div>
 
   <script>
-    // PLUIE DE CHIFFRES MATRIX AVEC CODE ROUGE
     const canvas = document.getElementById("matrix");
     const ctx = canvas.getContext("2d");
 
@@ -76,10 +91,20 @@
 
     const letters = "1234567890";
     const fontSize = 26;
-    const columns = canvas.width / fontSize;
-    const drops = [];
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = new Array(columns).fill(1);
 
-    for (let i = 0; i < columns; i++) drops[i] = 1;
+    let code = "5124";
+    let showCode = false;
+    let codeColumn = Math.floor(Math.random() * columns);
+    let codeStartRow = 0;
+
+    // Toutes les 30 secondes, on montre le code dans une colonne différente
+    setInterval(() => {
+      showCode = true;
+      codeColumn = Math.floor(Math.random() * columns);
+      codeStartRow = 0;
+    }, 30000);
 
     function drawMatrix() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
@@ -87,38 +112,42 @@
       ctx.font = fontSize + "px monospace";
 
       for (let i = 0; i < drops.length; i++) {
-        let char = letters[Math.floor(Math.random() * letters.length)];
         let x = i * fontSize;
         let y = drops[i] * fontSize;
 
-        // Affiche 1 chiffre sur 100 comme une partie du code rouge
-        if (Math.random() < 0.002) {
-          const codeDigits = ["5", "1", "2", "4"];
-          char = codeDigits[Math.floor(Math.random() * codeDigits.length)];
-          ctx.fillStyle = "#ff4444"; // rouge visible
+        if (showCode && i === codeColumn && drops[i] >= codeStartRow && drops[i] < codeStartRow + code.length) {
+          const char = code[drops[i] - codeStartRow];
+          ctx.fillStyle = "#ff4444";
+          ctx.fillText(char, x, y);
         } else {
-          ctx.fillStyle = "#0f0"; // vert classique
+          const char = letters[Math.floor(Math.random() * letters.length)];
+          ctx.fillStyle = "#0f0";
+          ctx.fillText(char, x, y);
         }
 
-        ctx.fillText(char, x, y);
-        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        if (y > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
         drops[i]++;
+      }
+
+      if (showCode && drops[codeColumn] > codeStartRow + code.length + 5) {
+        showCode = false;
       }
     }
 
     setInterval(drawMatrix, 70);
 
-    // CODE LOGIQUE D’ACCÈS
     function checkCode() {
-      const code = document.getElementById("codeInput").value;
-      if (code === "5124") {
+      const input = document.getElementById("codeInput").value;
+      if (input === "5124") {
         showConfirmDialog();
       } else {
         alert("N'essayez pas de vous introduire sans permission");
       }
     }
 
-    // POPUP DE CONFIRMATION FLIPPANTE
     function showConfirmDialog() {
       const confirmBox = document.createElement("div");
       confirmBox.style.position = "fixed";
@@ -152,14 +181,12 @@
       };
 
       document.getElementById("noBtn").onclick = () => {
-        window.location.href = "about:blank"; // Quitte le site
+        window.location.href = "about:blank";
       };
     }
 
-    // MENU APRÈS ACCÈS
     function showMenu() {
       document.querySelector(".content").style.display = "none";
-
       const menuDiv = document.createElement("div");
       menuDiv.style.color = "#ff0033";
       menuDiv.style.fontFamily = "monospace";
@@ -167,7 +194,6 @@
       menuDiv.style.textAlign = "center";
       menuDiv.style.marginTop = "20vh";
       menuDiv.textContent = "Dictatelle";
-
       document.body.appendChild(menuDiv);
     }
   </script>
