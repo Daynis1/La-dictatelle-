@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html><html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -11,78 +10,88 @@
       background-color: black;
       color: white;
       font-family: monospace;
-    }
+    }#matrix {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
 
-    #matrix {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 0;
-    }
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+}
 
-    .content {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-      padding: 20px;
-    }
+h1.title {
+  color: #880000;
+  font-size: 3em;
+  margin-bottom: 20px;
+  text-shadow: 0 0 20px #440000;
+}
 
-    h1.title {
-      color: #ff0000;
-      font-size: 3em;
-      margin-bottom: 20px;
-      text-shadow: 0 0 10px red;
-    }
+input[type="text"] {
+  padding: 10px;
+  font-size: 1.2em;
+  border: 2px solid #ff0000;
+  background-color: black;
+  color: white;
+  outline: none;
+  margin-top: 10px;
+}
 
-    input[type="text"] {
-      padding: 10px;
-      font-size: 1.2em;
-      border: 2px solid #ff0000;
-      background-color: black;
-      color: white;
-      outline: none;
-      margin-top: 10px;
-    }
+button {
+  padding: 10px 20px;
+  margin-top: 10px;
+  background-color: #111;
+  color: #ff0000;
+  border: 1px solid #ff0000;
+  cursor: pointer;
+  font-size: 1em;
+}
 
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-      background-color: #111;
-      color: #ff0000;
-      border: 1px solid #ff0000;
-      cursor: pointer;
-      font-size: 1em;
-    }
+.footer-message {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  color: #ff5555;
+  font-size: 1.1em;
+  z-index: 2;
+}
 
-    .footer-message {
-      position: fixed;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-      color: #ff5555;
-      font-size: 1.1em;
-      z-index: 2;
-    }
+.loader {
+  font-size: 2em;
+  color: white;
+}
+.dot {
+  animation: blink 1s infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+  0%, 20% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
   </style>
 </head>
 <body>
   <canvas id="matrix"></canvas>
-
-  <div class="content">
+  <div class="content" id="mainContent">
     <h1 class="title">La Dictatelle</h1>
     <p>Ils nous observent...</p>
     <input type="text" id="codeInput" placeholder="Code à 4 chiffres">
     <button onclick="checkCode()">Entrer</button>
-  </div>
-
-  <div class="footer-message">être observateur et patient</div>
-
-  <script>
+  </div>  <div class="footer-message">être observateur et patient</div>  <script>
     const canvas = document.getElementById("matrix");
     const ctx = canvas.getContext("2d");
 
@@ -99,7 +108,6 @@
     let codeColumn = Math.floor(Math.random() * columns);
     let codeStartRow = 0;
 
-    // Toutes les 30 secondes, on montre le code dans une colonne différente
     setInterval(() => {
       showCode = true;
       codeColumn = Math.floor(Math.random() * columns);
@@ -168,8 +176,8 @@
       confirmBox.innerHTML = `
         <p>Êtes-vous sûr de rentrer dans La Dictatelle ?</p>
         <div style="margin-top: 20px;">
-          <button id="yesBtn" style="font-size: 1.2em; margin-right: 20px; padding: 10px 20px; cursor: pointer; background: #222; color: #ff0033; border: 1px solid #ff0033;">Oui</button>
-          <button id="noBtn" style="font-size: 1.2em; padding: 10px 20px; cursor: pointer; background: #222; color: #ff0033; border: 1px solid #ff0033;">Non</button>
+          <button id="yesBtn">Oui</button>
+          <button id="noBtn">Non</button>
         </div>
       `;
 
@@ -177,7 +185,7 @@
 
       document.getElementById("yesBtn").onclick = () => {
         document.body.removeChild(confirmBox);
-        showMenu();
+        showLoadingScene();
       };
 
       document.getElementById("noBtn").onclick = () => {
@@ -185,17 +193,41 @@
       };
     }
 
-    function showMenu() {
-      document.querySelector(".content").style.display = "none";
-      const menuDiv = document.createElement("div");
-      menuDiv.style.color = "#ff0033";
-      menuDiv.style.fontFamily = "monospace";
-      menuDiv.style.fontSize = "5em";
-      menuDiv.style.textAlign = "center";
-      menuDiv.style.marginTop = "20vh";
-      menuDiv.textContent = "Dictatelle";
-      document.body.appendChild(menuDiv);
+    function showLoadingScene() {
+      document.getElementById("mainContent").style.display = "none";
+      document.querySelector(".footer-message").style.display = "none";
+      const loadingScreen = document.createElement("div");
+      loadingScreen.style.position = "fixed";
+      loadingScreen.style.top = 0;
+      loadingScreen.style.left = 0;
+      loadingScreen.style.width = "100vw";
+      loadingScreen.style.height = "100vh";
+      loadingScreen.style.background = "linear-gradient(black, #220000)";
+      loadingScreen.style.color = "white";
+      loadingScreen.style.display = "flex";
+      loadingScreen.style.flexDirection = "column";
+      loadingScreen.style.justifyContent = "center";
+      loadingScreen.style.alignItems = "center";
+      loadingScreen.style.zIndex = 10000;
+      loadingScreen.innerHTML = `
+        <div class="loader">Chargement<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+      `;
+      document.body.appendChild(loadingScreen);
+
+      setTimeout(() => {
+        loadingScreen.innerHTML = `<img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Skull_icon.svg" style="width:150px;filter:invert(1) saturate(5) hue-rotate(180deg);animation: glitch 0.5s infinite alternate;">
+          <p style="font-size:1.5em;margin-top:20px;color:red;text-shadow: 0 0 5px red;">Bienvenue, nouveau participant...</p>`;
+        setTimeout(() => {
+          loadingScreen.innerHTML += `<p style="margin-top:20px;">Voici un test pour vous...</p>
+            <button onclick="startTest()">Faire le test</button>
+            <button onclick="window.location.href='about:blank'">Non</button>`;
+        }, 4000);
+      }, 3000);
     }
-  </script>
-</body>
+
+    function startTest() {
+      alert("Le test commencera bientôt...");
+      // à compléter : ici on pourrait ajouter des jeux, énigmes, pièges, etc.
+    }
+  </script></body>
 </html>
