@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>La Dictatelle</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
       overflow: hidden;
       background: black;
       font-family: monospace;
-      color: #00ff99;
     }
 
     canvas {
@@ -23,135 +21,155 @@
     .content {
       position: relative;
       z-index: 1;
+      color: red;
       text-align: center;
-      margin-top: 12vh;
+      margin-top: 30vh;
     }
 
-    h1 {
-      font-size: 4em;
-      animation: glitch 1.5s infinite;
-    }
-
-    .msg {
-      color: #ff0033;
-      font-style: italic;
-      margin-top: 10px;
-    }
-
-    .code-area {
-      margin-top: 30px;
-    }
-
-    input[type="password"] {
-      background: black;
-      color: #00ff99;
-      border: 1px solid #00ff99;
+    input[type="text"] {
       padding: 10px;
       font-size: 1.2em;
-      text-align: center;
-      width: 120px;
-      letter-spacing: 10px;
+      background: black;
+      border: 2px solid red;
+      color: red;
     }
 
     button {
-      background: #111;
-      color: #00ff99;
-      border: 1px solid #00ff99;
       padding: 10px 20px;
-      margin-left: 10px;
+      font-size: 1.2em;
+      background: black;
+      color: red;
+      border: 2px solid red;
       cursor: pointer;
     }
 
-    #site-content {
-      display: none;
-      color: #ff0033;
-      margin-top: 40px;
-    }
-
-    @keyframes glitch {
-      0% { text-shadow: 2px 0 red, -2px 0 blue; }
-      25% { text-shadow: -2px 0 red, 2px 0 blue, 5px 5px #5124; }
-      50% { text-shadow: 1px 1px red, -1px -1px blue; }
-      75% { text-shadow: 2px 2px red, -2px -2px blue, 0 0 5px #5124; }
-      100% { text-shadow: 0 0 red, 0 0 blue; }
+    .footer-message {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      color: #ff5555;
+      font-size: 1.1em;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
-  <canvas id="matrixCanvas"></canvas>
+  <canvas id="matrix"></canvas>
 
   <div class="content">
-    <h1>La Dictatelle</h1>
-    <div class="msg">Ils nous observent.</div>
-
-    <div class="code-area">
-      <input type="password" id="codeInput" maxlength="4" placeholder="****" />
-      <button onclick="checkCode()">Entrer</button>
-    </div>
-
-    <div id="site-content">
-      <p>Bienvenue dans La Dictatelle...</p>
-      <p>Les fichiers sont ouverts. D’autres portes vous attendent.</p>
-    </div>
+    <h1>Ils nous observent.</h1>
+    <h2>La Dictatelle</h2>
+    <input type="text" id="codeInput" placeholder="Code d'accès">
+    <button onclick="checkCode()">Entrer</button>
   </div>
 
-  <script>
-    function checkCode() {
-      const code = document.getElementById("codeInput").value;
-      if (code === "5124") {
-        document.getElementById("site-content").style.display = "block";
-      } else {
-        alert("Code incorrect. Regarde autour de toi...");
-      }
-    }
+  <div class="footer-message">être observateur et patient</div>
 
-    // EFFET MATRIX + CODE CACHÉ
-    const canvas = document.getElementById("matrixCanvas");
+  <script>
+    // PLUIE DE CHIFFRES MATRIX AVEC CODE ROUGE
+    const canvas = document.getElementById("matrix");
     const ctx = canvas.getContext("2d");
+
     canvas.height = window.innerHeight;
     canvas.width = window.innerWidth;
 
-    const chars = "01";
-    const fontSize = 28;  // <-- taille augmentée
-    const columns = Math.floor(canvas.width / fontSize);
-    const drops = Array(columns).fill(1);
+    const letters = "1234567890";
+    const fontSize = 26;
+    const columns = canvas.width / fontSize;
+    const drops = [];
+
+    for (let i = 0; i < columns; i++) drops[i] = 1;
 
     function drawMatrix() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#0F0"; // caractères verts
       ctx.font = fontSize + "px monospace";
 
       for (let i = 0; i < drops.length; i++) {
-        let text = chars.charAt(Math.floor(Math.random() * chars.length));
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        let char = letters[Math.floor(Math.random() * letters.length)];
+        let x = i * fontSize;
+        let y = drops[i] * fontSize;
 
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
+        // Affiche 1 chiffre sur 100 comme une partie du code rouge
+        if (Math.random() < 0.002) {
+          const codeDigits = ["5", "1", "2", "4"];
+          char = codeDigits[Math.floor(Math.random() * codeDigits.length)];
+          ctx.fillStyle = "#ff4444"; // rouge visible
+        } else {
+          ctx.fillStyle = "#0f0"; // vert classique
         }
+
+        ctx.fillText(char, x, y);
+        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
       }
     }
 
-    setInterval(drawMatrix, 70); // <-- vitesse ralentie
+    setInterval(drawMatrix, 70);
 
-    // 🔐 Injecter le code 5124 toutes les 30 secondes
-    setInterval(() => {
-      const codeDigits = ['5', '1', '2', '4'];
-      for (let i = 0; i < codeDigits.length; i++) {
-        const x = Math.floor(Math.random() * columns);
-        const y = Math.floor(Math.random() * (canvas.height / fontSize));
-        ctx.fillStyle = "#ff5555"; // rouge clair et visible
-        ctx.font = fontSize + "px monospace";
-        ctx.fillText(codeDigits[i], x * fontSize, y * fontSize);
+    // CODE LOGIQUE D’ACCÈS
+    function checkCode() {
+      const code = document.getElementById("codeInput").value;
+      if (code === "5124") {
+        showConfirmDialog();
+      } else {
+        alert("N'essayez pas de vous introduire sans permission");
       }
-    }, 30000);
+    }
 
-    // Ajuste la taille du canvas si la fenêtre change
-    window.addEventListener('resize', () => {
-      canvas.height = window.innerHeight;
-      canvas.width = window.innerWidth;
-    });
+    // POPUP DE CONFIRMATION FLIPPANTE
+    function showConfirmDialog() {
+      const confirmBox = document.createElement("div");
+      confirmBox.style.position = "fixed";
+      confirmBox.style.top = "0";
+      confirmBox.style.left = "0";
+      confirmBox.style.width = "100vw";
+      confirmBox.style.height = "100vh";
+      confirmBox.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+      confirmBox.style.color = "#ff0033";
+      confirmBox.style.display = "flex";
+      confirmBox.style.flexDirection = "column";
+      confirmBox.style.justifyContent = "center";
+      confirmBox.style.alignItems = "center";
+      confirmBox.style.fontFamily = "monospace";
+      confirmBox.style.fontSize = "2em";
+      confirmBox.style.zIndex = "9999";
+
+      confirmBox.innerHTML = `
+        <p>Êtes-vous sûr de rentrer dans La Dictatelle ?</p>
+        <div style="margin-top: 20px;">
+          <button id="yesBtn" style="font-size: 1.2em; margin-right: 20px; padding: 10px 20px; cursor: pointer; background: #222; color: #ff0033; border: 1px solid #ff0033;">Oui</button>
+          <button id="noBtn" style="font-size: 1.2em; padding: 10px 20px; cursor: pointer; background: #222; color: #ff0033; border: 1px solid #ff0033;">Non</button>
+        </div>
+      `;
+
+      document.body.appendChild(confirmBox);
+
+      document.getElementById("yesBtn").onclick = () => {
+        document.body.removeChild(confirmBox);
+        showMenu();
+      };
+
+      document.getElementById("noBtn").onclick = () => {
+        window.location.href = "about:blank"; // Quitte le site
+      };
+    }
+
+    // MENU APRÈS ACCÈS
+    function showMenu() {
+      document.querySelector(".content").style.display = "none";
+
+      const menuDiv = document.createElement("div");
+      menuDiv.style.color = "#ff0033";
+      menuDiv.style.fontFamily = "monospace";
+      menuDiv.style.fontSize = "5em";
+      menuDiv.style.textAlign = "center";
+      menuDiv.style.marginTop = "20vh";
+      menuDiv.textContent = "Dictatelle";
+
+      document.body.appendChild(menuDiv);
+    }
   </script>
 </body>
 </html>
