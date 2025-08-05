@@ -4,222 +4,203 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>La Dictatelle</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
       background: black;
-      color: #00ff00;
-      font-family: monospace;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
       overflow: hidden;
-    }canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
-
-.overlay, .centered, .question-box, .menu-final {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: red;
-  z-index: 2;
-}
-
-.skull {
-  width: 150px;
-  animation: glitch 1s infinite;
-  filter: hue-rotate(180deg) brightness(1.5);
-}
-
-@keyframes glitch {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-48%, -52%) scale(1.05); }
-  100% { transform: translate(-50%, -50%) scale(1); }
-}
-
-.footer {
-  position: absolute;
-  bottom: 10px;
-  width: 100%;
-  text-align: center;
-  color: red;
-  z-index: 3;
-  font-size: 18px;
-}
-
-button {
-  background: transparent;
-  border: 1px solid red;
-  color: red;
-  padding: 10px;
-  margin: 10px;
-  cursor: pointer;
-}
-
-.menu-final div {
-  margin: 10px;
-  font-size: 20px;
-  color: #ff0000;
-}
-
+    }
+    .matrix {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: #0f0;
+      font-size: 20px;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .codeHint {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: red;
+      font-size: 16px;
+      z-index: 2;
+    }
+    .centered {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 3;
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border: 2px solid red;
+    }
+    button {
+      background: black;
+      color: red;
+      border: 1px solid red;
+      padding: 10px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    .hidden {
+      display: none;
+    }
+    .skull {
+      width: 100px;
+      animation: glitch 0.2s infinite;
+    }
+    @keyframes glitch {
+      0% { transform: translate(1px, -1px); }
+      25% { transform: translate(-1px, 1px); }
+      50% { transform: translate(2px, 2px); }
+      75% { transform: translate(-2px, -2px); }
+      100% { transform: translate(1px, 1px); }
+    }
   </style>
 </head>
 <body>
-  <canvas id="matrix"></canvas>
-  <div class="overlay" id="intro">
-    <h1 style="color: darkred; font-size: 32px;">La Dictatelle</h1>
-    <p style="color: red">Il nous observe...</p>
-    <input type="password" id="codeInput" placeholder="Code">
+  <div class="matrix" id="matrix"></div>
+  <div class="codeHint">Être observateur et patient</div>
+  <div class="centered" id="intro">
+    <h1 style="color: darkred; font-size: 32px;">LA DICTATELLE</h1>
+    <p>Ils nous observent...</p>
+    <input type="text" id="codeInput" placeholder="Entrez le code...">
+    <br>
     <button onclick="checkCode()">Valider</button>
-    <p id="errorMessage"></p>
-  </div>
-  <div class="footer">Être observateur et patient</div>
-  <div class="overlay" id="loading" style="display:none; color: white;">
+    <p id="errorMsg" style="color:red"></p>
+  </div>  <div class="centered hidden" id="confirmAccess">
+    <p style="color:red">Êtes-vous sûr de vouloir entrer dans La Dictatelle ?</p>
+    <button onclick="startLoading()">Oui</button>
+    <button onclick="window.close()">Non</button>
+  </div>  <div class="centered hidden" id="loading">
     <p>Chargement</p>
     <p>● ● ●</p>
-  </div>
-  <div class="overlay" id="skullScreen" style="display:none;">
+  </div>  <div class="centered hidden" id="skullPhase">
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Skull_icon.svg/1024px-Skull_icon.svg.png" class="skull">
-    <p style="color:red">Bienvenue nouveau participant...</p>
-  </div>
-  <div class="overlay" id="questionBox" style="display:none;"></div>
-  <div class="overlay" id="blackScreen" style="display:none; background:black; width:100%; height:100%;"></div>
-  <div class="overlay" id="finalScreen" style="display:none;">
-    <h1 style="color:red; font-size: 36px;">La Dictatelle</h1>
-    <div class="menu-final">
-      <div>Salon textuel</div>
-      <div>Contenus vidéo</div>
-      <div>Engagement</div>
-      <div>Vente</div>
-    </div>
-  </div>
-  <script>
-    const canvas = document.getElementById("matrix");
-    const ctx = canvas.getContext("2d");
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-    const letters = "0123456789";
-    const fontSize = 16;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);let code = "5124";
-let tick = 0;
+    <p style="color: red">Bienvenue nouveau participant...</p>
+  </div>  <div class="centered hidden" id="question1">
+    <p>Êtes-vous seul en ce moment ?</p>
+    <button onclick="answer1()">Oui</button>
+    <button onclick="answer1()">Non</button>
+  </div>  <div class="centered hidden" id="question2">
+    <p>Élément pris en compte</p>
+    <button onclick="nextQuestion('question3')">Continuer</button>
+    <button onclick="window.close()">S'arrêter ici</button>
+  </div>  <div class="centered hidden" id="question3">
+    <p>Êtes-vous un criminel ?</p>
+    <button onclick="criminalAnswer(false)">Non</button>
+    <button onclick="criminalAnswer(true)">Oui</button>
+  </div>  <div class="centered hidden" id="afterCriminal">
+    <p id="criminalMsg"></p>
+    <button onclick="nextQuestion('question4')">Continuer</button>
+    <button onclick="window.close()">S'arrêter ici</button>
+  </div>  <div class="centered hidden" id="question4">
+    <p>Êtes-vous prêt à entrer dans La Dictatelle ?</p>
+    <button onclick="finalPhase()">Oui</button>
+    <button onclick="window.close()">Non</button>
+  </div>  <div class="centered hidden" id="fadeToBlack">
+    <p style="color:red">...</p>
+  </div>  <div class="centered hidden" id="revealText">
+    <p id="revealMsg"></p>
+  </div>  <div class="centered hidden" id="mainMenu">
+    <h1 style="color:red">LA DICTATELLE</h1>
+    <p>Salon textuel | Contenus vidéo | Engagement | Vente</p>
+  </div>  <script>
+    const code = "5124";
+    let matrix = document.getElementById("matrix");
+    let columns = Math.floor(window.innerWidth / 20);
+    let drops = [];
+    for (let x = 0; x < columns; x++) drops[x] = 1;
+    let showCode = false;
+    setInterval(drawMatrix, 50);
+    setInterval(() => {
+      showCode = true;
+      setTimeout(() => { showCode = false; }, 1000);
+    }, 20000);
 
-function draw() {
-  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#0F0";
-  ctx.font = fontSize + "px monospace";
-
-  for (let i = 0; i < drops.length; i++) {
-    let text = letters.charAt(Math.floor(Math.random() * letters.length));
-
-    if (tick % 1200 === 0 && i === Math.floor(Math.random() * columns)) {
-      text = code;
-      ctx.fillStyle = "#ff0000";
-      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-    } else {
+    function drawMatrix() {
+      let ctx = matrix.getContext("2d");
+      matrix.width = window.innerWidth;
+      matrix.height = window.innerHeight;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, matrix.width, matrix.height);
       ctx.fillStyle = "#0F0";
-      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+      ctx.font = "20px monospace";
+      for (let i = 0; i < drops.length; i++) {
+        let text = Math.floor(Math.random() * 10);
+        if (showCode && Math.floor(Math.random() * 10) === 1) {
+          text = code[Math.floor(Math.random() * code.length)];
+          ctx.fillStyle = "red";
+        } else {
+          ctx.fillStyle = "#0F0";
+        }
+        ctx.fillText(text, i * 20, drops[i] * 20);
+        if (drops[i] * 20 > window.innerHeight && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
     }
 
-    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-      drops[i] = 0;
+    function checkCode() {
+      let input = document.getElementById("codeInput").value;
+      if (input === code) {
+        document.getElementById("intro").classList.add("hidden");
+        document.getElementById("confirmAccess").classList.remove("hidden");
+      } else {
+        document.getElementById("errorMsg").innerText = "N'essayez pas de vous introduire sans permission";
+      }
     }
-    drops[i]++;
-  }
-  tick++;
-}
-setInterval(draw, 50);
 
-function checkCode() {
-  const input = document.getElementById("codeInput").value;
-  if (input === code) {
-    document.getElementById("intro").style.display = "none";
-    document.getElementById("loading").style.display = "block";
-    setTimeout(() => {
-      document.getElementById("loading").style.display = "none";
-      document.getElementById("skullScreen").style.display = "block";
+    function startLoading() {
+      document.getElementById("confirmAccess").classList.add("hidden");
+      document.getElementById("loading").classList.remove("hidden");
       setTimeout(() => {
-        document.getElementById("skullScreen").style.display = "none";
-        showQuestion("Êtes-vous seul en ce moment ?", next1);
-      }, 4000);
-    }, 5000);
-  } else {
-    document.getElementById("errorMessage").textContent = "N'essayez pas de vous introduire sans permission";
-  }
-}
-
-function showQuestion(question, callback) {
-  const box = document.getElementById("questionBox");
-  box.innerHTML = `<p>${question}</p><button onclick="(${callback.toString()})('oui')">Oui</button><button onclick="(${callback.toString()})('non')">Non</button>`;
-  box.style.display = "block";
-}
-
-function next1(rep) {
-  document.getElementById("questionBox").style.display = "none";
-  showMessage("Élément pris en compte...", () => {
-    showQuestion("Souhaitez-vous poursuivre ou vous arrêter ?", next2);
-  });
-}
-
-function next2(rep) {
-  if (rep === 'non') {
-    window.close();
-    return;
-  }
-  document.getElementById("questionBox").style.display = "none";
-  showQuestion("Êtes-vous un criminel ?", next3);
-}
-
-function next3(rep) {
-  document.getElementById("questionBox").style.display = "none";
-  if (rep === 'non') {
-    showMessage("Vous le deviendrez bientôt si vous êtes découvert ici...", () => showQuestion("Souhaitez-vous continuer ou vous arrêter ?", next4));
-  } else {
-    showMessage("Élément enregistré...", () => showQuestion("Souhaitez-vous continuer ou vous arrêter ?", next4));
-  }
-}
-
-function next4(rep) {
-  if (rep === 'non') {
-    window.close();
-    return;
-  }
-  document.getElementById("questionBox").style.display = "none";
-  showQuestion("Êtes-vous prêt à entrer dans la Dictatelle ?", finalEntry);
-}
-
-function finalEntry(rep) {
-  if (rep === 'oui') {
-    document.getElementById("questionBox").style.display = "none";
-    document.getElementById("blackScreen").style.display = "block";
-    setTimeout(() => {
-      document.getElementById("blackScreen").innerHTML = '<p style="color:red; font-size:24px;">Ce site est un repère de toutes les pires choses de la planète...</p>';
-      setTimeout(() => {
-        document.getElementById("blackScreen").innerHTML = '<p style="color:red; font-size:20px;">Mort. Violence. Secte. Criminel. Meurtrier. Marché noir... sont présents ici.</p>';
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("skullPhase").classList.remove("hidden");
         setTimeout(() => {
-          document.getElementById("blackScreen").style.display = "none";
-          document.getElementById("finalScreen").style.display = "block";
+          document.getElementById("skullPhase").classList.add("hidden");
+          document.getElementById("question1").classList.remove("hidden");
+        }, 3000);
+      }, 5000);
+    }
+
+    function answer1() {
+      document.getElementById("question1").classList.add("hidden");
+      document.getElementById("question2").classList.remove("hidden");
+    }
+
+    function nextQuestion(id) {
+      document.querySelectorAll('.centered').forEach(el => el.classList.add("hidden"));
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function criminalAnswer(isCriminal) {
+      document.getElementById("question3").classList.add("hidden");
+      let msg = isCriminal ? "Élément enregistré" : "Vous le deviendrez bientôt si vous êtes découvert ici.";
+      document.getElementById("criminalMsg").innerText = msg;
+      document.getElementById("afterCriminal").classList.remove("hidden");
+    }
+
+    function finalPhase() {
+      nextQuestion("fadeToBlack");
+      setTimeout(() => {
+        nextQuestion("revealText");
+        let msg = document.getElementById("revealMsg");
+        msg.innerText = "Ce site est un repère de toutes les pires choses de la planète...";
+        setTimeout(() => {
+          msg.innerText = "Mort. Violence. Sectes. Criminels. Marché noir sont présents ici...";
+          setTimeout(() => {
+            nextQuestion("mainMenu");
+          }, 5000);
         }, 5000);
       }, 5000);
-    }, 3000);
-  } else {
-    window.close();
-  }
-}
-
-function showMessage(message, callback) {
-  const box = document.getElementById("questionBox");
-  box.innerHTML = `<p>${message}</p>`;
-  setTimeout(() => {
-    box.style.display = "none";
-    callback();
-  }, 3000);
-}
-
-  </script>
-</body>
+    }
+  </script></body>
 </html>
